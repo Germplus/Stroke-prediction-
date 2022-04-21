@@ -1,22 +1,17 @@
 import pandas as pd
-import numpy as np
-
-from matplotlib import colors
 import matplotlib.pyplot as plt
-import matplotlib.ticker as mtick
 import seaborn as sns
-
+from IPython.core.pylabtools import figsize
+from plotly.offline import plot, iplot, init_notebook_mode
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.model_selection import train_test_split, KFold, cross_val_score
-from sklearn.linear_model import LogisticRegression
-from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.naive_bayes import BernoulliNB
-from sklearn.svm import SVC
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from sklearn.metrics import confusion_matrix, classification_report
-
 import warnings
+import pickle
+from imblearn.over_sampling import SMOTE
+
 warnings.filterwarnings('ignore')
 
 
@@ -60,18 +55,30 @@ scaler.fit(X)
 X_scaled = scaler.transform(X)
 X = pd.DataFrame(X_scaled, columns=X.columns)
 
+
 # print(X.head())
 
+# model fitting
 model= DecisionTreeClassifier()
 
 model.fit(X_train, y_train)
 
-
 pred = model.predict(X_test)
+cm = confusion_matrix(y_test, pred)
+disp = ConfusionMatrixDisplay(confusion_matrix=cm)
+disp.plot()
+plt.show()
 
-print(confusion_matrix(y_test, pred, labels=(1,0)))
+print(confusion_matrix(y_test, pred, labels=model.classes_))
 print(classification_report(y_test, pred))
 
-def prediction(feat_value):
-    scaled = scaler.transform(feat_value)
-    return dtc.predict(feat_value)
+
+pd.DataFrame(model.feature_importances_, index=X.columns,
+             columns=['Feature Importance']).sort_values(by='Feature Importance').plot.bar()
+plt.show()
+
+# open a file, where you ant to store the data
+# file = open('stroke.pkl', 'wb')
+
+# dump information to that file
+# pickle.dump(model, file)

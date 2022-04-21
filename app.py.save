@@ -1,0 +1,206 @@
+imrt numpy as np
+import pandas as pd
+from flask import Flask
+from oauthlib.uri_validate import host
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+import model
+import pickle
+from pywebio.platform.flask import webio_view
+from pywebio import STATIC_PATH
+from pywebio.input import *
+from pywebio.output import *
+from flask import Flask, render_template, request
+
+
+model1 = pickle.load(open('stroke.pkl', 'rb'))
+app = Flask(__name__)
+
+
+def predict():
+    gender = select('Please select gender.', ['Male', 'Female'])
+
+    age = input('Enter age', type=NUMBER)
+
+    hypertension = select('Do you have hypertension?', ['Yes', 'No'])
+    if hypertension == 'Yes':
+        hypertension = 1
+    elif hypertension == 'No':
+        hypertension = 0
+
+    heart_disease = select('Do you have Heart Disease?', ['Yes', 'No'])
+    if heart_disease == 'Yes':
+        heart_disease = 1
+    elif heart_disease == 'No':
+        heart_disease = 0
+
+    ever_married = select('Have you ever married?', ['Yes', 'No'])
+    if ever_married == 'yes':
+        ever_married = 1
+    elif ever_married == 'No':
+        ever_married = 0
+
+    work_type = select('what is your work type?', ['Government', 'Student', 'Private', 'Self-employed'])
+    if work_type == 'Government':
+        work_type = 0
+    elif work_type == 'Student':
+        work_type = 1
+    elif work_type == 'Private':
+        work_type = 2
+
+    elif work_type == 'Self-employed':
+        work_type = 3
+    else:
+        work_type = 4
+
+    residence_type = select('What is your resident type?', ['Urban', 'Rural'])
+    if residence_type == "Urban":
+        residence_type = 1
+    else:
+        residence_type = 0
+
+    avg_glucose_level = select('Enter Avg Glucose level or enter I do not know', type=NUMBER)
+
+    smoking_status = select('Select smoking status', ['Unknown', 'Never smoked', 'Formerly smoked', 'Smokes'])
+    if smoking_status == "Unknown":
+        smoking_status = 0
+    elif smoking_status == "Never smoked":
+        smoking_status = 1
+    elif smoking_status == "Formerly smoked":
+        smoking_status = 2
+    elif smoking_status == "Smokes":
+        smoking_status = 3
+
+    all_input = [gender, age, hypertension, heart_disease, ever_married, work_type, residence_type,
+                 avg_glucose_level, smoking_status]
+    scaler = StandardScaler()
+    scaler.fit(all_input)
+    all_scaled = scaler.transform(all_input)
+    f_all_input = pd.DataFrame(all_scaled)
+
+    prediction = model1.predict([[f_all_input]])
+    output = round(prediction[0], 2)
+
+    if output < 0:
+        put_text("Patient has no risk of Stroke")
+    else:
+        put_text("Patient has no risk of Stroke")
+
+
+app.add_url_rule('/tool', 'webio_view', webio_view(predict), methods=['GET', 'POST', 'OPTIONS'])
+
+app.run(host='localhost', port=8001)
+
+# def prediction(g, a, hyt, ht, m, w, r, gl,s):
+#
+#     # gender
+#     if g == "male":
+#         g = 1
+#     elif g == "female":
+#         g = 0
+#     else:
+#         g = 2
+#
+#
+#     # age
+#     a = ((a - min(model.my_new_data2['age'])) / (max(model.my_new_data2['age']) - min(model.my_new_data2['age'])))
+#
+#     # tension
+#     if hyt == "yes":
+#         hyt = 1
+#     elif hyt == "no":
+#         hyt = 0
+#
+#     # heart-issues
+#     if ht == "yes":
+#         ht = 1
+#     elif ht == "no":
+#         ht = 0
+#
+#     # married
+#     if m == "yes":
+#         m = 1
+#     elif m == "no":
+#         m = 0
+#
+#     # work-type
+#     if w == "government":
+#         w = 0
+#     elif w == "student":
+#         w = 1
+#     elif w == "private":
+#         w = 2
+#     elif w == "self-employed":
+#         w = 3
+#     else:
+#         w = 4
+#
+#     # residence-type
+#     if r == "urban":
+#         r = 1
+#     else:
+#         r = 0
+#
+#     # glucose-levels
+#     if gl == "i do not know":
+#         gl = np.mean(model.my_new_data2['avg_glucose_level'])
+#     else:
+#         gl = ((int(gl) - min(model.my_new_data2['avg_glucose_level'])) / (
+#                     max(model.my_new_data2['avg_glucose_level']) - min(model.my_new_data2['avg_glucose_level'])))
+#
+#
+#     # smoking
+#     if s == "unknown":
+#         s = 0
+#     elif s == "never smoked":
+#         s = 1
+#     elif s == "formerly smoked":
+#         s = 2
+#     elif s == "smokes":
+#         s = 3
+#
+#     scaler = StandardScaler()
+#
+#     scaler.fit([[g, a, hyt, ht, m, w, r, gl,s]])
+#     scaled = scaler.transform([[g, a, hyt, ht, m, w, r, gl,s]])
+#
+#     pred = model.model.predict(scaled)
+#     return pred
+#
+#
+# # INPUT - FROM - USER
+# g = input("Enter your gender : ")
+# g = g.lower()
+#
+# a = int(input("Enter your age : "))
+#
+# hyt = input("Do you have hypertension ? yes or no : ")
+# hyt = hyt.lower()
+#
+# ht = input("Do you have any heart Disease ? yes or no : ")
+# ht = ht.lower()
+#
+# m = input("Have you been Married ? yes or no : ")
+# m = m.lower()
+#
+# w = input("Worktype ? private/self-employed/student/government/others : ")
+# w = w.lower()
+#
+# r = input("residency type ? rural or urban ? : ")
+# r = r.lower()
+#
+# gl = input('enter glucose levels. ? Enter value or type "i do not know" : ')
+# gl = gl.lower()
+#
+#
+# s = input("Smoking Status => unknown/never smoked/formerly smoked/smokes : ")
+# s = s.lower()
+#
+# # call prediction function
+# op = prediction(g, a, hyt, ht, m, w, r, gl,s)
+# if op == 1:
+#     print("Person has chances of having Stroke")
+# elif op == 0:
+#     print("Patient has no risk of Stroke")
+#
+#
+#
