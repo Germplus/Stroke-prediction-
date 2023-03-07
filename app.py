@@ -89,4 +89,4 @@ def predict():
 if __name__ == '__main__':
     start_server(predict, port=8080, debug=True)
 
-predict()
+# predict()
