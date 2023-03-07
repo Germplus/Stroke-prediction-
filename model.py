@@ -59,7 +59,6 @@ disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=model.classes_
 disp.plot()
 plt.show()
 
-
 print(confusion_matrix(y_test, y_pred, labels=model.classes_))
 print(classification_report(y_test, y_pred))
 
